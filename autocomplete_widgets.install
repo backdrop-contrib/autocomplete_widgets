@@ -1,0 +1,47 @@
+<?php
+// $Id$
+
+/**
+ * @file
+ * Module installation/uninstallation hooks.
+ */
+
+/**
+ * Implementation of hook_install().
+ */
+function autocomplete_widgets_install() {
+  // Make sure this module is loaded after CCK Text/Number fields.
+  // See autocomplete_widgets_form_alter().
+  db_query("UPDATE {system} SET weight = 1 WHERE name = 'autocomplete_widgets'");
+
+  // Notify content module when this module is installed.
+  drupal_load('module', 'content');
+  content_notify('install', 'autocomplete_widgets');
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function autocomplete_widgets_uninstall() {
+  // Notify content module when this module is uninstalled.
+  drupal_load('module', 'content');
+  content_notify('uninstall', 'autocomplete_widgets');
+}
+
+/**
+ * Implementation of hook_enable().
+ */
+function autocomplete_widgets_enable() {
+  // Notify content module when this module is enabled.
+  drupal_load('module', 'content');
+  content_notify('enable', 'autocomplete_widgets');
+}
+
+/**
+ * Implementation of hook_disable().
+ */
+function autocomplete_widgets_disable() {
+  // Notify content module when this module is disabled.
+  drupal_load('module', 'content');
+  content_notify('disable', 'autocomplete_widgets');
+}
