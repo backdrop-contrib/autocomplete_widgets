@@ -232,7 +232,7 @@ function autocomplete_widgets_json($field_name, $string = '') {
   $options = _autocomplete_widgets_get_options($field, $string, $match, NULL, 10);
   foreach ($options as $key => $value) {
     // Add a class wrapper for a few required CSS overrides.
-    $matches[$value] = '<div class="reference-autocomplete">'. check_plain($value) . '</div>';
+    $matches[$value] = '<div class="reference-autocomplete">'. check_plain($value) .'</div>';
   }
   drupal_json($matches);
 }
@@ -349,7 +349,7 @@ function _autocomplete_widgets_get_options_flddata($field, $string = '', $match 
     $args[] = $string;
   }
   else if ($keys) {
-    $where[] = 'f.'. $column .' IN (' . db_placeholders($keys) . ')';
+    $where[] = 'f.'. $column .' IN ('. db_placeholders($keys) .')';
     $args = array_merge($args, $keys);
   }
 
