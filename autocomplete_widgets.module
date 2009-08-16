@@ -119,10 +119,25 @@ function autocomplete_widgets_widget_settings($op, $widget) {
         '#options' => array('starts_with' => t('Starts with'), 'contains' => t('Contains')),
         '#description' => t('Select the method used to collect autocomplete suggestions. Note that <em>Contains</em> can cause performance issues on sites with thousands of records.'),
       );
+      if ($widget['type'] == 'autocomplete_widgets_flddata' && module_exists('i18n')) {
+        $form['i18n_flddata'] = array(
+          '#type' => 'radios',
+          '#title' => t('Internationalization support'),
+          '#default_value' => (isset($widget['i18n_flddata']) ? $widget['i18n_flddata'] : 0),
+          '#options' => array(0 => t('Disabled'), 1 => t('Enabled')),
+          '#description' => t('Enable this option to provide a different set of allowed values based on the language their nodes are assigned to. This option is only available when <a href="@i18n-project-page">Internationalization</a> module is enabled.', array('@i18n-project-page' => 'http://drupal.org/project/i18n')),
+        );
+      }
+      else {
+        $form['i18n_flddata'] = array(
+          '#type' => 'value',
+          '#value' => 0,
+        );
+      }
       return $form;
 
     case 'save':
-      return array('size', 'autocomplete_match');
+      return array('size', 'autocomplete_match', 'i18n_flddata');
   }
 }
 
@@ -355,6 +370,11 @@ function _autocomplete_widgets_get_options_flddata($field, $string = '', $match 
   }
 
   $sql = 'SELECT f.'. $column .' FROM {'. $table .'} f WHERE '. implode(' AND ', $where) .' ORDER BY f.'. $column;
+  if (!empty($field['widget']['i18n_flddata'])) {
+    // Adding a join with the node table allows the i18n rewrite the query
+    // to filter values from node for the proper language.
+    $sql = db_rewrite_sql(str_replace(' WHERE ', ' INNER JOIN {node} n ON f.vid = n.vid WHERE ', $sql));
+  }
   $result = $limit ? db_query_range($sql, $args, 0, $limit) : db_query($sql, $args);
   $options = array();
   while ($row = db_fetch_object($result)) {

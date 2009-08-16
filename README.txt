@@ -18,6 +18,16 @@ This module adds 2 autocomplete widgets for CCK fields.
   and it takes candidate values from existing values in the database for that
   field.
 
+Both widgets allow you to choose the size of the text element and the method
+used to match values between 'Starts with' and 'Contains'.
+
+When the Internationalization module [1] is enabled, the 'Autocomplete for
+existing field data' widget also provides an option to filter values by the
+language assigned to their corresponding nodes. This option allows you to
+provide a different set of allowed values per language.
+
+[1] http://drupal.org/project/i18n
+
 
 REQUIREMENTS
 ============
