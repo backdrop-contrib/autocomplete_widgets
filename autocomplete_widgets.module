@@ -242,7 +242,7 @@ function autocomplete_widgets_validate($element, &$form_state) {
   $delta = $element['#delta'];
   $field = content_fields($field_name, $type_name);
   $field_key = $element['#columns'][0];
-  $value = trim($form_state['values'][$field_name][$delta][$field_key]);
+  $value = trim($element['#value']);
 
   if ($field['widget']['type'] == 'autocomplete_widgets_allowvals') {
     if ($value !== '') {

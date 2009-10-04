@@ -4,7 +4,7 @@
 ===========
 
 Bugfixes:
-- none, yet.
+- #562432 Autocomplete text fields do not use default value setting.
 
 Features:
 - Added CHANGELOG.txt.
