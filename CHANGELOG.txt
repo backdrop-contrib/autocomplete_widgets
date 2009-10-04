@@ -9,6 +9,7 @@ Bugfixes:
 Features:
 - Added CHANGELOG.txt.
 - #553336 Added case sensitive option. Needs update.php.
+- Split code into separate files to minimize memory consumption during normal site operation.
 
 
 6.x-1.2
