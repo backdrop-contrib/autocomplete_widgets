@@ -119,6 +119,33 @@ function autocomplete_widgets_widget_settings($op, $widget) {
         '#options' => array('starts_with' => t('Starts with'), 'contains' => t('Contains')),
         '#description' => t('Select the method used to collect autocomplete suggestions. Note that <em>Contains</em> can cause performance issues on sites with thousands of records.'),
       );
+      $form['autocomplete_case'] = array(
+        '#type' => 'radios',
+        '#title' => t('Case sensitive'),
+        '#default_value' => (isset($widget['autocomplete_case']) ? $widget['autocomplete_case'] : 1),
+        '#options' => array(0 => t('Disabled'), 1 => t('Enabled')),
+      );
+      if ($widget['type'] == 'autocomplete_widgets_flddata') {
+        $form['autocomplete_case']['#description'] = t('Case-insensitive queries are implemented using the <a href="!function-lower-url">LOWER()</a> function in combination with the <a href="!operator-like-url">LIKE</a> operator.', array(
+          '!function-lower-url' => 'http://dev.mysql.com/doc/refman/5.1/en/string-functions.html#function_lower',
+          '!operator-like-url' => 'http://dev.mysql.com/doc/refman/5.1/en/string-comparison-functions.html#operator_like',
+        ));
+        if (in_array($GLOBALS['db_type'], array('mysql', 'mysqli'))) {
+          $form['autocomplete_case']['#description'] .= ' '. t('Note that MySQL might ignore case sensitivity depending on the collation used in your database definition (see <a href="!mysql-i18n-l10n-url">Internationalization and Localization</a> chapter in the MySQL manual). If you need case insensitive checks, it is recommended (for performance reasons) to use a case insensitive collation as well (such as utf8_general_ci), rather than disabling the case sensitive option here.', array(
+            '!mysql-i18n-l10n-url' => 'http://dev.mysql.com/doc/refman/5.1/en/internationalization-localization.html',
+          ));
+        }
+        elseif ($GLOBALS['db_type'] == 'pgsql') {
+          $form['autocomplete_case']['#description'] .= ' '. t('You may want to create an expression index using the LOWER() function to speed up this kind of queries in PostgreSQL (See <a href="!indexes-expressional-url">Indexes on Expressions</a>).', array(
+            '!indexes-expressional-url' => 'http://www.postgresql.org/docs/8.4/static/indexes-expressional.html',
+          ));
+        }
+      }
+      else {
+        $form['autocomplete_case']['#description'] = t('Case-insensitive queries are implemented using the function <a href="!drupal-strtolower-url">drupal_strtolower()</a>.', array(
+          '!drupal-strtolower-url' => 'http://api.drupal.org/api/function/drupal_strtolower/6',
+        ));
+      }
       if ($widget['type'] == 'autocomplete_widgets_flddata' && module_exists('i18n')) {
         $form['i18n_flddata'] = array(
           '#type' => 'radios',
@@ -137,7 +164,7 @@ function autocomplete_widgets_widget_settings($op, $widget) {
       return $form;
 
     case 'save':
-      return array('size', 'autocomplete_match', 'i18n_flddata');
+      return array('size', 'autocomplete_match', 'autocomplete_case', 'i18n_flddata');
   }
 }
 
@@ -308,6 +335,10 @@ function _autocomplete_widgets_get_options_allowvals($field, $string = '', $matc
   if (!isset($limit) || !is_numeric($limit)) {
     $limit = count($allowed_values);
   }
+  $case_insensitive = (!empty($field['widget']['autocomplete_case']) ? FALSE : TRUE);
+  if ($case_insensitive) {
+    $string = drupal_strtolower($string);
+  }
   $count = 0;
   $options = array();
   foreach ($allowed_values as $key => $value) {
@@ -330,7 +361,7 @@ function _autocomplete_widgets_get_options_allowvals($field, $string = '', $matc
       }
     }
     else {
-      $pos = stripos($value, $string);
+      $pos = strpos(($case_insensitive ? drupal_strtolower($value) : $value), $string);
       if (($match == 'starts_with' && $pos === 0) || ($match == 'contains' && $pos !== FALSE)) {
         $options[$key] = $value;
         $count++;
@@ -356,12 +387,13 @@ function _autocomplete_widgets_get_options_flddata($field, $string = '', $match 
   $args = array();
 
   if ($string !== '') {
+    $lower = (!empty($field['widget']['autocomplete_case']) || $match == 'equals' ? '' : 'LOWER');
     $match_operators = array(
-      'contains' => "LIKE '%%%s%%'",
+      'contains' => "LIKE $lower('%%%s%%')",
       'equals' => "= '%s'",
-      'starts_with' => "LIKE '%s%%'",
+      'starts_with' => "LIKE $lower('%s%%')",
     );
-    $where[] = 'f.'. $column .' '. (isset($match_operators[$match]) ? $match_operators[$match] : $match_operators['contains']);
+    $where[] = "$lower(f.". $column .') '. (isset($match_operators[$match]) ? $match_operators[$match] : $match_operators['contains']);
     $args[] = $string;
   }
   else if (isset($keys) && is_array($keys)) {
