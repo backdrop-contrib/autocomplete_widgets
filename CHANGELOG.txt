@@ -10,6 +10,7 @@ Features:
 - Added CHANGELOG.txt.
 - #553336 Added case sensitive option. Needs update.php.
 - Split code into separate files to minimize memory consumption during normal site operation.
+- Added translations template and fixed a couple of potx warnings related to CCK widget labels.
 
 
 6.x-1.2

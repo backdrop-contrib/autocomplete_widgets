@@ -15,7 +15,7 @@ function _autocomplete_widgets_content_field_edit_form_alter(&$form, $form_state
     // Implementation of allowed values list.
     if ($widget_type == 'autocomplete_widgets_allowvals') {
       $form['field']['allowed_values_fieldset']['#collapsed'] = FALSE;
-      $form['field']['allowed_values_fieldset']['#description'] = '<p>'. t('Create a list of options as a list in <strong>Allowed values list</strong> or as an array in PHP code. These values will be the same for %field in all content types.', array('%field' => t($form['#field']['widget']['label']))) .'</p>';
+      $form['field']['allowed_values_fieldset']['#description'] = '<p>'. t('Create a list of options as a list in <strong>Allowed values list</strong> or as an array in PHP code. These values will be the same for %field in all content types.', array('%field' => $form['#field']['widget']['label'])) .'</p>';
 
       // If no 'allowed values' were set yet, add a remainder in the messages area.
       if (empty($form_state['post'])

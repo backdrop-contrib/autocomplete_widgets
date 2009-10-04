@@ -165,7 +165,7 @@ function autocomplete_widgets_validate($element, &$form_state) {
       module_load_include('inc', 'autocomplete_widgets', 'autocomplete_widgets.common');
       $options = _autocomplete_widgets_get_options($field, $value, 'equals', NULL, 1);
       if (empty($options)) {
-        form_error($element, t('%name: found no valid option.', array('%name' => t($field['widget']['label']))));
+        form_error($element, t('%name: found no valid option.', array('%name' => $field['widget']['label'])));
       }
       else {
         $value = key($options);
