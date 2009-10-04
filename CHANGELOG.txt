@@ -1,0 +1,36 @@
+// $Id$
+
+6.x-1.x-dev
+===========
+
+Bugfixes:
+- none, yet.
+
+Features:
+- Added CHANGELOG.txt.
+
+
+6.x-1.2
+=======
+
+Release notes:
+- Upgrading does not require running update.php.
+
+Features:
+- #550588: Add support for i18n to the 'Autocomplete for existing field data' widget.
+
+
+6.x-1.1
+=======
+
+Release notes:
+- Upgrading does not require running update.php.
+
+Bugfixes:
+- #405628 by nguyenquocviet - The widget of autocomplete for allowed values list does not show any possible values from allowed values list.
+
+
+6.x-1.0
+=======
+
+- Initial release.
