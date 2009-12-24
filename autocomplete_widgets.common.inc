@@ -65,7 +65,7 @@ function _autocomplete_widgets_get_options_allowvals($field, $string = '', $matc
     $limit = count($allowed_values);
   }
   $case_insensitive = (!empty($field['widget']['autocomplete_case']) ? FALSE : TRUE);
-  if ($case_insensitive) {
+  if ($case_insensitive && $match != 'equals') {
     $string = drupal_strtolower($string);
   }
   $count = 0;

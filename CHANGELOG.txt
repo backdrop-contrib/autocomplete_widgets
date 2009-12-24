@@ -5,6 +5,7 @@
 
 Bugfixes:
 - #562432 Autocomplete text fields do not use default value setting.
+- #553336 Follow up patch to fix case sensitivity feature.
 
 Features:
 - Added CHANGELOG.txt.
