@@ -12,7 +12,9 @@ Release notes:
 - This release requires running update.php to upgrade.
 
 Security issue:
-- DRUPAL-SA-CONTRIB-2009-115: Autocomplete callback implemented by this module does not honor permissions to access CCK fields.
+- DRUPAL-SA-CONTRIB-2009-115 [1]: Autocomplete callback does not honor permissions to access CCK fields.
+
+[1] http://drupal.org/node/670942
 
 Bugfixes:
 - #562432 Autocomplete text fields do not use default value setting.
