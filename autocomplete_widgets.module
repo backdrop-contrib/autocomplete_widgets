@@ -14,7 +14,8 @@ function autocomplete_widgets_menu() {
   $items['autocomplete_widgets'] = array(
     'title' => 'Autocomplete Widgets',
     'page callback' => 'autocomplete_widgets_json',
-    'access arguments' => array('access content'),
+    'access callback' => 'autocomplete_widgets_access',
+    'access arguments' => array(1, 2),
     'type' => MENU_CALLBACK,
   );
   return $items;
@@ -177,6 +178,13 @@ function autocomplete_widgets_validate($element, &$form_state) {
   // This will move the nested value at 'field-name-0-value-value'
   // back to its original location, 'field-name-0-value'.
   form_set_value($element, $value, $form_state);
+}
+
+/**
+ * Check access to the menu callback of the autocomplete widget.
+ */
+function autocomplete_widgets_access($type_name, $field_name) {
+  return user_access('access content') && ($field = content_fields($field_name, $type_name)) && content_access('view', $field) && content_access('edit', $field);
 }
 
 /**
