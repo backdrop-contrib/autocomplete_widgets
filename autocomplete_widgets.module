@@ -31,6 +31,16 @@ function autocomplete_widgets_theme() {
 }
 
 /**
+ * Implementation of hook_views_api().
+ */
+function autocomplete_widgets_views_api() {
+  return array(
+    'api' => 3.0,
+    'path' => drupal_get_path('module', 'autocomplete_widgets') . '/views',
+  );
+}
+
+/**
  * Implementation of hook_form_alter().
  *
  * Because we need to alter the field settings form, this module needs
