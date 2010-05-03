@@ -85,6 +85,13 @@ function _autocomplete_widgets_widget_settings($op, $widget) {
           '!drupal-strtolower-url' => 'http://api.drupal.org/api/function/drupal_strtolower/6',
         ));
       }
+      $form['autocomplete_xss'] = array(
+        '#type' => 'radios',
+        '#title' => t('Filter HTML'),
+        '#default_value' => (isset($widget['autocomplete_xss']) ? $widget['autocomplete_xss'] : 0),
+        '#options' => array(0 => t('Disabled'), 1 => t('Enabled')),
+        '#description' => t('Enable this option to filter out HTML in display of values.'),
+      );
       if ($widget['type'] == 'autocomplete_widgets_flddata' && module_exists('i18n')) {
         $form['i18n_flddata'] = array(
           '#type' => 'radios',
@@ -103,6 +110,6 @@ function _autocomplete_widgets_widget_settings($op, $widget) {
       return $form;
 
     case 'save':
-      return array('size', 'autocomplete_match', 'autocomplete_case', 'i18n_flddata');
+      return array('size', 'autocomplete_match', 'autocomplete_case', 'autocomplete_xss', 'i18n_flddata');
   }
 }

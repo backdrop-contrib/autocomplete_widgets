@@ -68,9 +68,14 @@ function _autocomplete_widgets_get_options_allowvals($field, $string = '', $matc
   if ($case_insensitive && $match != 'equals') {
     $string = drupal_strtolower($string);
   }
+  $filter_xss = !empty($field['widget']['autocomplete_xss']);
   $count = 0;
   $options = array();
   foreach ($allowed_values as $key => $value) {
+    if ($filter_xss) {
+      // Filter all HTML in $value, then trim white spaces.
+      $value = trim(filter_xss($value, array()));
+    }
     if ($string === '') {
       if (isset($keys) && is_array($keys)) {
         if (in_array($key, $keys)) {

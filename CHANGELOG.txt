@@ -5,6 +5,7 @@
 
 Features:
 - #656554 by dagmar - Views 3 integration.
+- #730790 by jromine - Filter HTML from display of values.
 
 
 6.x-1.3
