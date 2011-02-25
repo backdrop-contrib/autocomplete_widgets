@@ -1,4 +1,3 @@
-; $Id$
 name = Autocomplete Widgets
 description = Provides autocomplete widgets for CCK Text and Number fields.
 dependencies[] = content
