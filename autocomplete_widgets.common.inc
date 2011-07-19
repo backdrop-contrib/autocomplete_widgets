@@ -44,6 +44,9 @@ function _autocomplete_widgets_get_options($field, $string = '', $match = 'conta
     else if ($field['widget']['type'] == 'autocomplete_widgets_flddata') {
       $results[$cid] = _autocomplete_widgets_get_options_flddata($field, $string, $match, $keys, $limit);
     }
+    else if ($field['widget']['type'] == 'autocomplete_widgets_suggested') {
+      $results[$cid] = _autocomplete_widgets_get_options_suggested($field, $string, $match, $keys, $limit);
+    }
     else {
       $results[$cid] = array();
     }
@@ -58,8 +61,8 @@ function _autocomplete_widgets_get_options($field, $string = '', $match = 'conta
  * Options are retrieved from the allowed values defined for the field.
  */
 function _autocomplete_widgets_get_options_allowvals($field, $string = '', $match = 'contains', $keys = NULL, $limit = NULL) {
-  $function = $field['module'] .'_allowed_values';
-  $allowed_values = (array)(function_exists($function) ? $function($field) : content_allowed_values($field));
+  $field_name = $field['field_name'];
+  $allowed_values = list_allowed_values(field_info_field($field_name));
   if (!isset($limit) || !is_numeric($limit)) {
     $limit = count($allowed_values);
   }
@@ -113,38 +116,92 @@ function _autocomplete_widgets_get_options_allowvals($field, $string = '', $matc
  * Options are retrieved from existing values for the field.
  */
 function _autocomplete_widgets_get_options_flddata($field, $string = '', $match = 'contains', $keys = NULL, $limit = NULL) {
-  $db_info = content_database_info($field);
-  $table = $db_info['table'];
-  $column = $field['field_name'] .'_'. key($db_info['columns']);
-  $where = array();
-  $args = array();
+  $field_name = $field['field_name'];
+  $table = 'field_data_' . $field_name;
+  $column = $field_name . '_value';
 
-  if ($string !== '') {
-    $lower = (!empty($field['widget']['autocomplete_case']) || $match == 'equals' ? '' : 'LOWER');
-    $match_operators = array(
-      'contains' => "LIKE $lower('%%%s%%')",
-      'equals' => "= '%s'",
-      'starts_with' => "LIKE $lower('%s%%')",
-    );
-    $where[] = "$lower(f.". $column .') '. (isset($match_operators[$match]) ? $match_operators[$match] : $match_operators['contains']);
-    $args[] = $string;
-  }
-  else if (isset($keys) && is_array($keys)) {
-    $where[] = 'f.'. $column .' IN ('. db_placeholders($keys) .')';
-    $args = array_merge($args, $keys);
-  }
+  $select = db_select($table, 'fd');
+  $select->addField('fd', $column);
 
-  $sql = 'SELECT f.'. $column .' FROM {'. $table .'} f WHERE '. implode(' AND ', $where) .' ORDER BY f.'. $column;
   if (!empty($field['widget']['i18n_flddata'])) {
     // Adding a join with the node table allows the i18n rewrite the query
     // to filter values from node for the proper language.
-    $sql = db_rewrite_sql(str_replace(' WHERE ', ' INNER JOIN {node} n ON f.vid = n.vid WHERE ', $sql));
+    $select->join('node', 'n', 'vid = n.vid');
   }
-  $result = $limit ? db_query_range($sql, $args, 0, $limit) : db_query($sql, $args);
+
+  if ($string !== '') {
+    $case_sensitive = empty($field['widget']['autocomplete_case']);
+    $col = $case_sensitive ? $column : strtolower($column);
+    $val = $case_sensitive ? $string : strtolower($string);
+
+    switch ($match) {
+      case 'equals':
+        $select->condition($col, $val);
+        break;
+      case 'starts_with':
+        $select->condition($col, $val . '%', 'LIKE');
+        break;
+      case 'contains':
+      default:
+        $select->condition($col, '%' . $val . '%', 'LIKE');
+        break;
+    }
+  }
+  elseif (isset($keys) && is_array($keys)) {
+    $select->condition($column, $keys, 'IN');
+  }
+  if (!empty($limit)) {
+    $select->range(0, $limit);
+  }
+  $rows = $select->execute()->fetchAll(PDO::FETCH_ASSOC);
+
   $options = array();
-  while ($row = db_fetch_object($result)) {
-    $options[$row->$column] = $row->$column;
+  foreach($rows as $row) {
+    $options[$row[$column]] = $row[$column];
+  }
+  return $options;
+}
+
+/**
+ * Fetch an array of options for the given widget (suggested).
+ *
+ * Options are retrieved from the suggested values defined for the field.
+ */
+function _autocomplete_widgets_get_options_suggested($field, $string = '', $match = 'contains', $keys = NULL, $limit = NULL) {
+  $case_sensitive = empty($field['widget']['autocomplete_case']);
+
+  $options = explode("\n", $field['widget']['settings']['suggested_values']);
+  $options = array_map('trim', $options);
+  $options = array_filter($options, 'strlen');
+
+  switch ($match) {
+    case 'contains':
+    case 'starts_with':
+      $matched_options = array();
+
+      if (!$case_sensitive) {
+        $options = array_map('strtolower', $options);
+        $string = strtolower($string);
+      }
+
+      foreach ($options as $option) {
+        if ($match == 'contains' && strpos($option, $string) !== FALSE) {
+          $matched_options[] = $option;
+        }
+        elseif ($match == 'starts_width' && strpos($option, $string) === 0) {
+          $matched_options[] = $option;
+        }
+      }
+      $options = $matched_options;
+      break;
+    case 'equals':
+      if (in_array($string, $options, TRUE)) {
+        $options = array($string);
+      }
+      break;
+    
   }
 
   return $options;
 }
+

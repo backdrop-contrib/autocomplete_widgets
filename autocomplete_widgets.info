@@ -1,5 +1,8 @@
 name = Autocomplete Widgets
-description = Provides autocomplete widgets for CCK Text and Number fields.
-dependencies[] = content
-package = CCK
-core = 6.x
+description = Provides autocomplete widgets for Text and List fields 
+core = 7.x
+
+files[] = autocomplete_widgets.admin.inc
+files[] = autocomplete_widgets.common.inc
+files[] = autocomplete_widgets.module
+dependencies[] = list

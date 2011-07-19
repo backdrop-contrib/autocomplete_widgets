@@ -1,3 +1,10 @@
+7.x-1.x-dev
+===========
+
+This is the initial dev release for the 7.x branch which integrates with the fields API that is now in core.
+The following new widget has been added:
+-  'Autocomplete for predefined suggestions' - this allows an admin to provide a list of suggestions but still allows users to enter anything they want in a text field. Use this widget to help avoid (but not prevent) variations of the same value. Ex: burger, hamburger, Burger ...
+
 
 6.x-1.x-dev
 ===========

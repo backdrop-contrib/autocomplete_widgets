@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Provides autocomplete widgets for CCK Text and Number fields.
+ * Provides autocomplete widgets for  Text and Number fields.
  */
 
 /**
@@ -13,8 +13,7 @@ function autocomplete_widgets_menu() {
   $items['autocomplete_widgets'] = array(
     'title' => 'Autocomplete Widgets',
     'page callback' => 'autocomplete_widgets_json',
-    'access callback' => 'autocomplete_widgets_access',
-    'access arguments' => array(1, 2),
+    'access arguments' => array('access content'),
     'type' => MENU_CALLBACK,
   );
   return $items;
@@ -23,11 +22,11 @@ function autocomplete_widgets_menu() {
 /**
  * Implementation of hook_theme().
  */
-function autocomplete_widgets_theme() {
-  return array(
-    'autocomplete_widgets' => array('arguments' => array('element' => NULL)),
-  );
-}
+ function autocomplete_widgets_theme() {
+   return array(
+     'autocomplete_widgets' => array('variables' => array('element' => NULL)),
+   );
+ }
 
 /**
  * Implementation of hook_views_api().
@@ -40,176 +39,167 @@ function autocomplete_widgets_views_api() {
 }
 
 /**
- * Implementation of hook_form_alter().
- *
- * Because we need to alter the field settings form, this module needs
- * to be loaded after CCK Text/Number field modules.
- * See autocomplete_widgets_install().
+ * Implementation of hook_field_widget_info().
  */
-function autocomplete_widgets_form_alter(&$form, $form_state, $form_id) {
-  // Provide additional help for the field settings form.
-  if ($form_id == 'content_field_edit_form' && isset($form['widget'])) {
-    module_load_include('inc', 'autocomplete_widgets', 'autocomplete_widgets.admin');
-    _autocomplete_widgets_content_field_edit_form_alter($form, $form_state);
-  }
-}
-
-/**
- * Implementation of hook_widget_info().
- */
-function autocomplete_widgets_widget_info() {
+function autocomplete_widgets_field_widget_info() {
   return array(
     'autocomplete_widgets_allowvals' => array(
-      'label' => t('Autocomplete for allowed values list'), 'field types' => array('text', 'number_integer', 'number_decimal', 'number_float'),
+      'label' => t('Autocomplete for allowed values list'), 
+      'field types' => array('list_text', 'list_integer', 'list_decimal', 'list_float'),
+      'settings' => array(
+        'size' => 60, 
+        'autocomplete_match' => 'contains', 
+        'autocomplete_case' => 1,
+      ),
     ),
     'autocomplete_widgets_flddata' => array(
-      'label' => t('Autocomplete for existing field data'), 'field types' => array('text'),
+      'label' => t('Autocomplete for existing field data'), 
+      'field types' => array('text'),
+      'settings' => array(
+        'size' => 60, 
+        'autocomplete_match' => 'contains', 
+        'autocomplete_case' => 1,
+      ),
     ),
+    'autocomplete_widgets_suggested' => array(
+      'label' => t('Autocomplete for predefined suggestions'), 
+      'field types' => array('text'),
+      'settings' => array(
+        'size' => 60, 
+        'autocomplete_match' => 'contains', 
+        'autocomplete_case' => 1,
+      ),
+    ),
+
   );
 }
 
 /**
- * Implementation of hook_elements().
+ * Implementation of hook_element_info().
  *
  * Autocomplete_path is not used by text_widget but other widgets can use it
  * (see nodereference and userreference).
  */
-function autocomplete_widgets_elements() {
+function autocomplete_widgets_element_info() {
   return array(
     'autocomplete_widgets' => array(
       '#input' => TRUE,
       '#columns' => array('value'), '#delta' => 0,
-      '#process' => array('autocomplete_widgets_process'),
+      '#process' => array('autocomplete_widgets_process_element'),
       '#autocomplete_path' => FALSE,
     ),
   );
 }
 
 /**
- * Implementation of hook_widget_settings().
+ * Implementation of hook_field_widget_settings_form().
  */
-function autocomplete_widgets_widget_settings($op, $widget) {
+function autocomplete_widgets_field_widget_settings_form($field, $instance) {
   module_load_include('inc', 'autocomplete_widgets', 'autocomplete_widgets.admin');
-  return _autocomplete_widgets_widget_settings($op, $widget);
+  return _autocomplete_widgets_field_widget_settings_form($field, $instance);
 }
 
 /**
- * Implementation of hook_widget().
+ * Implementation of hook_field_widget_form().
  */
-function autocomplete_widgets_widget(&$form, &$form_state, $field, $items, $delta = 0) {
-  return array(
-    '#type' => 'autocomplete_widgets',
-    '#default_value' => isset($items[$delta]) ? $items[$delta] : NULL,
-  );
-}
-
-/**
- * Process an individual textfield autocomplete element.
- */
-function autocomplete_widgets_process($element, $edit, $form_state, $form) {
-  $field = $form['#field_info'][$element['#field_name']];
-  $field_key = $element['#columns'][0];
-
-  $value = NULL;
-  if ($field['widget']['type'] == 'autocomplete_widgets_allowvals') {
-    if (isset($element['#value'][$field_key])) {
-      $keys = array($element['#value'][$field_key]);
-      module_load_include('inc', 'autocomplete_widgets', 'autocomplete_widgets.common');
-      $options = _autocomplete_widgets_get_options($field, '', '', $keys, 1);
-      if (!empty($options)) {
-        $value = current($options);
-      }
-    }
-  }
-  else if ($field['widget']['type'] == 'autocomplete_widgets_flddata') {
-    if (isset($element['#value'][$field_key])) {
-      $value = $element['#value'][$field_key];
-    }
-  }
-
-  $element[$field_key] = array(
-    '#type' => 'textfield',
-    '#default_value' => $value,
-    '#autocomplete_path' => 'autocomplete_widgets/'. $element['#type_name'] .'/'. $element['#field_name'],
-    '#size' => !empty($field['widget']['size']) ? $field['widget']['size'] : 60,
-    '#attributes' => array('class' => 'text'),
-    // The following values were set by the content module and need
-    // to be passed down to the nested element.
-    '#title' => $element['#title'],
-    '#description' => $element['#description'],
-    '#required' => $element['#required'],
-    '#field_name' => $element['#field_name'],
-    '#type_name' => $element['#type_name'],
-    '#delta' => $element['#delta'],
+function autocomplete_widgets_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
+  $element['value'] = array(
     '#columns' => $element['#columns'],
+    '#field_name' => $element['#field_name'],
+    '#field_parents' => $element['#field_parents'],
+    '#language' => $element['#language'],
+    '#description' => $element['#description'],
+    '#default_value' => isset($items[$delta]['value']) ? $items[$delta]['value'] : '',
+    '#required' => $element['#required'],
+    '#weight' => isset($element['#weight']) ? $element['#weight'] : 0,
+    '#delta' => $delta,
+    '#title' => $element['#title'],
+    '#size' => $instance['widget']['settings']['size'],
   );
-
-  $element[$field_key]['#maxlength'] = !empty($field['max_length']) ? $field['max_length'] : NULL;
-
-  if (empty($element[$field_key]['#element_validate'])) {
-    $element[$field_key]['#element_validate'] = array();
+  
+  switch($instance['widget']['type']) {
+    case 'autocomplete_widgets_flddata':
+    case 'autocomplete_widgets_suggested':
+      $element['value'] = array_merge($element['value'], array(
+        '#type' => 'textfield',
+        '#autocomplete_path' => 'autocomplete_widgets/'. $instance['entity_type'] . '/' . $instance['bundle'] . '/' . $element['#field_name'],
+      ));
+      break;
+    case 'autocomplete_widgets_allowvals':
+      // get the label for key in hidden text field
+      $keys = array($element['value']['#default_value']);
+      module_load_include('inc', 'autocomplete_widgets', 'autocomplete_widgets.common');
+      $options = ($keys[0] != '') ? _autocomplete_widgets_get_options($instance, '', '', $keys, 1) : NULL;
+      $element['value'] = array_merge($element['value'], array(
+        '#type' => 'textfield',
+        '#process' => array('autocomplete_widgets_process_element'),
+        '#title' => $element['#title'],
+        '#field_name' => $element['#field_name'],
+        '#field_parents' => $element['#field_parents'],
+        '#description' => $element['#description'],
+        '#columns' => $element['#columns'],
+        '#autocomplete_path' => 'autocomplete_widgets/'. $instance['entity_type'] . '/' . $instance['bundle'] . '/' . $element['#field_name'],
+        '#language' => $element['#language'],
+        '#default_value' => isset($options) ? current($options) : '',
+        '#required' => $element['#required'],
+        '#weight' => isset($element['#weight']) ? $element['#weight'] : 0,
+        '#delta' => $delta,
+        '#element_validate' => array('autocomplete_widgets_validate'),
+      ));
   }
-  array_unshift($element[$field_key]['#element_validate'], 'autocomplete_widgets_validate');
-
-  $element['_error_element'] = array(
-    '#type' => 'value',
-    '#value' => implode('][', array_merge($element['#parents'], array($field_key))),
-  );
 
   return $element;
 }
 
 /**
- * Validate a textfield autocomplete element.
+ * Process an individual textfield autocomplete element.
+ */
+function autocomplete_widgets_process_element($element, &$form_state, $form) {
+  $instance = field_widget_instance($element, $form_state);
+
+  if ($instance['widget']['type'] == 'autocomplete_widgets_allowvals') {
+    module_load_include('inc', 'autocomplete_widgets', 'autocomplete_widgets.common');
+
+    $label = drupal_array_get_nested_value($form_state['values'], $element['#parents'], $exists);
+    $options = _autocomplete_widgets_get_options($instance, $label, 'equals', NULL, 1);
+    if ($options) {
+      drupal_array_set_nested_value($form_state['values'], $element['#parents'], key($options));
+    }
+  }
+  return $element;
+}
+
+/**
+ * Validate a list autocomplete element.
  */
 function autocomplete_widgets_validate($element, &$form_state) {
-  $field_name = $element['#field_name'];
-  $type_name = $element['#type_name'];
-  $delta = $element['#delta'];
-  $field = content_fields($field_name, $type_name);
-  $field_key = $element['#columns'][0];
-  $value = trim($element['#value']);
-
-  if ($field['widget']['type'] == 'autocomplete_widgets_allowvals') {
-    if ($value !== '') {
+  $instance = field_widget_instance($element, $form_state);
+  if ($instance['widget']['type'] == 'autocomplete_widgets_allowvals') {
+    $label = $element['#value'];
+    if ($label !== '') {
       module_load_include('inc', 'autocomplete_widgets', 'autocomplete_widgets.common');
-      $options = _autocomplete_widgets_get_options($field, $value, 'equals', NULL, 1);
+      $options = _autocomplete_widgets_get_options($instance, $label, 'equals', NULL, 1);
       if (empty($options)) {
-        form_error($element, t('%name: found no valid option.', array('%name' => $field['widget']['label'])));
-      }
-      else {
-        $value = key($options);
+        form_error($element, t('%name: %label is not a valid option for this field.', array('%name' => $instance['label'], '%label' => $label)));
       }
     }
   }
-
-  // Remove the wrapper layer and set the right element's value.
-  // This will move the nested value at 'field-name-0-value-value'
-  // back to its original location, 'field-name-0-value'.
-  form_set_value($element, $value, $form_state);
 }
 
 /**
- * Check access to the menu callback of the autocomplete widget.
+ * Menu callback; Retrieve the autocomplete suggestions.
  */
-function autocomplete_widgets_access($type_name, $field_name) {
-  return user_access('access content') && ($field = content_fields($field_name, $type_name)) && content_access('view', $field) && content_access('edit', $field);
-}
-
-/**
- * Menu callback; Retrieve a pipe delimited string of autocomplete suggestions.
- */
-function autocomplete_widgets_json($type_name, $field_name, $string = '') {
+function autocomplete_widgets_json($entity_type, $bundle_name, $field_name, $string = '') {
   module_load_include('inc', 'autocomplete_widgets', 'autocomplete_widgets.common');
-  $field = content_fields($field_name, $type_name);
-  $match = isset($field['widget']['autocomplete_match']) ? $field['widget']['autocomplete_match'] : 'contains';
+  $field = field_info_instance($entity_type, $field_name, $bundle_name);
+  $match = isset($field['widget']['settings']['autocomplete_match']) ? $field['widget']['settings']['autocomplete_match'] : 'contains';
   $matches = array();
   $options = _autocomplete_widgets_get_options($field, $string, $match, NULL, 10);
-  foreach ($options as $key => $value) {
+  foreach ($options as $key => $label) {
     // Add a class wrapper for a few required CSS overrides.
-    $matches[$value] = '<div class="reference-autocomplete">'. check_plain($value) .'</div>';
+    $matches[$label] = '<div class="reference-autocomplete">'. check_plain($label) .'</div>';
   }
-  drupal_json($matches);
+  drupal_json_output($matches);
 }
 
 /**
