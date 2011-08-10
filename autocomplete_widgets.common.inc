@@ -66,8 +66,8 @@ function _autocomplete_widgets_get_options_allowvals($field, $string = '', $matc
   if (!isset($limit) || !is_numeric($limit)) {
     $limit = count($allowed_values);
   }
-  $case_insensitive = (!empty($field['widget']['autocomplete_case']) ? FALSE : TRUE);
-  if ($case_insensitive && $match != 'equals') {
+  $case_sensitive = empty($field['widget']['autocomplete_case']);
+  if (!$case_sensitive && $match != 'equals') {
     $string = drupal_strtolower($string);
   }
   $filter_xss = !empty($field['widget']['autocomplete_xss']);
@@ -97,7 +97,7 @@ function _autocomplete_widgets_get_options_allowvals($field, $string = '', $matc
       }
     }
     else {
-      $pos = strpos(($case_insensitive ? drupal_strtolower($value) : $value), $string);
+      $pos = strpos((!$case_sensitive ? drupal_strtolower($value) : $value), $string);
       if (($match == 'starts_with' && $pos === 0) || ($match == 'contains' && $pos !== FALSE)) {
         $options[$key] = $value;
         $count++;
