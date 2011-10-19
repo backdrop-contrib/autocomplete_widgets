@@ -188,7 +188,7 @@ function _autocomplete_widgets_get_options_suggested($field, $string = '', $matc
         if ($match == 'contains' && strpos($option, $string) !== FALSE) {
           $matched_options[] = $option;
         }
-        elseif ($match == 'starts_width' && strpos($option, $string) === 0) {
+        elseif ($match == 'starts_with' && strpos($option, $string) === 0) {
           $matched_options[] = $option;
         }
       }
