@@ -61,18 +61,15 @@ function _autocomplete_widgets_get_options($field, $string = '', $match = 'conta
  * Options are retrieved from the allowed values defined for the field.
  */
 function _autocomplete_widgets_get_options_allowvals($field, $string = '', $match = 'contains', $keys = NULL, $limit = NULL) {
+
   $field_name = $field['field_name'];
   $allowed_values = list_allowed_values(field_info_field($field_name));
-  if (!isset($limit) || !is_numeric($limit)) {
-    $limit = count($allowed_values);
-  }
-  $case_sensitive = empty($field['widget']['autocomplete_case']);
-  if (!$case_sensitive && $match != 'equals') {
-    $string = drupal_strtolower($string);
-  }
-  $filter_xss = !empty($field['widget']['autocomplete_xss']);
-  $count = 0;
+  $limit = (!isset($limit) || !is_numeric($limit)) ? count($allowed_values) : $limit;
+  $case_sensitive = $field['widget']['settings']['autocomplete_case'];
+  $filter_xss = !empty($field['widget']['settings']['autocomplete_xss']);
   $options = array();
+  $count = 0;
+
   foreach ($allowed_values as $key => $value) {
     if ($filter_xss) {
       // Filter all HTML in $value, then trim white spaces.
@@ -97,7 +94,7 @@ function _autocomplete_widgets_get_options_allowvals($field, $string = '', $matc
       }
     }
     else {
-      $pos = strpos((!$case_sensitive ? drupal_strtolower($value) : $value), $string);
+      $pos = $case_sensitive ? strpos($value, $string) : strpos(drupal_strtolower($value), drupal_strtolower($string));
       if (($match == 'starts_with' && $pos === 0) || ($match == 'contains' && $pos !== FALSE)) {
         $options[$key] = $value;
         $count++;
@@ -199,7 +196,7 @@ function _autocomplete_widgets_get_options_suggested($field, $string = '', $matc
         $options = array($string);
       }
       break;
-    
+
   }
 
   return $options;
