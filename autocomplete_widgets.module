@@ -123,6 +123,7 @@ function autocomplete_widgets_field_widget_form(&$form, &$form_state, $field, $i
     '#delta' => $delta,
     '#title' => $element['#title'],
     '#size' => $instance['widget']['settings']['size'],
+    '#maxlength' => $field['settings']['max_length'],
   );
 
   switch($instance['widget']['type']) {
