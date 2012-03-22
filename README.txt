@@ -7,7 +7,7 @@
 OVERVIEW
 ========
 
-This module adds 3 autocomplete widgets for Drupal 7
+This module adds 4 autocomplete widgets for Drupal 7
 
 - Autocomplete for allowed values list: This widget can be used for List fields
   and it takes candidate values from the defined list of Allowed values of the
@@ -33,7 +33,6 @@ language assigned to their corresponding nodes. This option allows you to
 provide a different set of allowed values per language.
 
 [1] http://drupal.org/project/i18n
-
 
 
 INSTALLATION
