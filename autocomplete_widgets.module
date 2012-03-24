@@ -123,8 +123,10 @@ function autocomplete_widgets_field_widget_form(&$form, &$form_state, $field, $i
     '#delta' => $delta,
     '#title' => $element['#title'],
     '#size' => $instance['widget']['settings']['size'],
-    '#maxlength' => $field['settings']['max_length'],
   );
+  if (isset($field['settings']['max_length'])) {
+    $element['value']['#maxlength'] = $field['settings']['max_length'];
+  }
 
   switch($instance['widget']['type']) {
     case 'autocomplete_widgets_flddata':
