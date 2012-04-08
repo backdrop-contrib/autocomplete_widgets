@@ -153,6 +153,7 @@ function _autocomplete_widgets_get_options_flddata($field, $string = '', $match 
   if (!empty($limit)) {
     $select->range(0, $limit);
   }
+  $select->distinct();
   $rows = $select->execute()->fetchAll(PDO::FETCH_ASSOC);
 
   $options = array();
