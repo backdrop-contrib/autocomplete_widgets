@@ -8,12 +8,12 @@
 /**
  * Fetch an array of options for the given widget.
  *
- * @param $field
- *   The field description.
+ * @param $instance
+ *   A structured array describing the field instance.
  * @param $string
  *   Optional string to filter values on (used by autocomplete).
  * @param $match
- *   Operator to match filtered name against, can be any of:
+ *   Operator to match filtered name against. Can be any of:
  *   'contains', 'equals', 'starts_with'
  * @param $keys
  *   Optional keys to lookup (the $string and $match arguments will be
@@ -28,30 +28,31 @@
  *     ...
  *   )
  */
-function _autocomplete_widgets_get_options($field, $string = '', $match = 'contains', $keys = NULL, $limit = NULL) {
+function _autocomplete_widgets_get_options($instance, $string = '', $match = 'contains', $keys = NULL, $limit = NULL) {
   static $results = array();
 
   // Create unique id for static cache.
   if (!isset($keys) || !is_array($keys)) {
     $keys = array();
   }
-  $cid = $field['field_name'] .':'. $match .':'. ($string !== '' ? $string : implode('-', $keys)) .':'. $limit;
+  $cid = $instance['field_name'] .':'. $match .':'. ($string !== '' ? $string : implode('-', $keys)) . ':' . $limit;
 
   if (!isset($results[$cid])) {
-    if ($field['widget']['type'] == 'autocomplete_widgets_allowvals') {
-      $results[$cid] = _autocomplete_widgets_get_options_allowvals($field, $string, $match, $keys, $limit);
-    }
-    else if ($field['widget']['type'] == 'autocomplete_widgets_flddata') {
-      $results[$cid] = _autocomplete_widgets_get_options_flddata($field, $string, $match, $keys, $limit);
-    }
-    else if ($field['widget']['type'] == 'autocomplete_widgets_suggested') {
-      $results[$cid] = _autocomplete_widgets_get_options_suggested($field, $string, $match, $keys, $limit);
-    }
-    else if ($field['widget']['type'] == 'autocomplete_widgets_node_reference') {
-      $results[$cid] = _autocomplete_widgets_get_options_node_reference($field, $string, $match, $keys, $limit);
-    }
-    else {
-      $results[$cid] = array();
+    switch ($instance['widget']['type']) {
+      case 'autocomplete_widgets_allowvals':
+        $results[$cid] = _autocomplete_widgets_get_options_allowvals($instance, $string, $match, $keys, $limit);
+        break;
+      case 'autocomplete_widgets_flddata':
+        $results[$cid] = _autocomplete_widgets_get_options_flddata($instance, $string, $match, $keys, $limit);
+        break;
+      case 'autocomplete_widgets_suggested':
+        $results[$cid] = _autocomplete_widgets_get_options_suggested($instance, $string, $match, $keys, $limit);
+        break;
+      case 'autocomplete_widgets_node_reference':
+        $results[$cid] = _autocomplete_widgets_get_options_node_reference($instance, $string, $match, $keys, $limit);
+        break;
+      default:
+        $results[$cid] = array();
     }
   }
 
@@ -63,15 +64,15 @@ function _autocomplete_widgets_get_options($field, $string = '', $match = 'conta
  *
  * Options are retrieved from the allowed values defined for the field.
  */
-function _autocomplete_widgets_get_options_allowvals($field, $string = '', $match = 'contains', $keys = NULL, $limit = NULL) {
+function _autocomplete_widgets_get_options_allowvals($instance, $string = '', $match = 'contains', $keys = NULL, $limit = NULL) {
 
-  $field_name = $field['field_name'];
+  $field_name = $instance['field_name'];
   $allowed_values = list_allowed_values(field_info_field($field_name));
   $limit = (!isset($limit) || !is_numeric($limit)) ? count($allowed_values) : $limit;
-  $case_sensitive = $field['widget']['settings']['autocomplete_case'];
-  $filter_xss = !empty($field['widget']['settings']['autocomplete_xss']);
+  $case_sensitive = $instance['widget']['settings']['autocomplete_case'];
+  $filter_xss = !empty($instance['widget']['settings']['autocomplete_xss']);
   $options = array();
-  $count = 0;
+  $count = 0; //@todo: cant the count var be replaced with a call to count()?
 
   foreach ($allowed_values as $key => $value) {
     if ($filter_xss) {
@@ -107,6 +108,9 @@ function _autocomplete_widgets_get_options_allowvals($field, $string = '', $matc
       break;
     }
   }
+
+  _autocomplete_widgets_sort_options($options, $instance);
+
   return $options;
 }
 
@@ -115,22 +119,22 @@ function _autocomplete_widgets_get_options_allowvals($field, $string = '', $matc
  *
  * Options are retrieved from existing values for the field.
  */
-function _autocomplete_widgets_get_options_flddata($field, $string = '', $match = 'contains', $keys = NULL, $limit = NULL) {
-  $field_name = $field['field_name'];
-  $table = 'field_data_' . $field_name;
-  $column = $field_name . '_value';
+function _autocomplete_widgets_get_options_flddata($instance, $string = '', $match = 'contains', $keys = NULL, $limit = NULL) {
+  $table = 'field_data_' . $instance['field_name'];
+  $column = $instance['field_name'] . '_value';
+  $order = isset($instance['widget']['settings']['order']) ? $instance['widget']['settings']['order'] : '';
 
   $select = db_select($table, 'fd');
   $select->addField('fd', $column);
 
-  if (!empty($field['widget']['i18n_flddata'])) {
+  if (!empty($instance['widget']['i18n_flddata'])) {
     // Adding a join with the node table allows the i18n rewrite the query
     // to filter values from node for the proper language.
     $select->join('node', 'n', 'vid = n.vid');
   }
 
   if ($string !== '') {
-    $case_sensitive = empty($field['widget']['autocomplete_case']);
+    $case_sensitive = empty($instance['widget']['autocomplete_case']);
     $col = $case_sensitive ? $column : strtolower($column);
     $val = $case_sensitive ? $string : strtolower($string);
 
@@ -153,6 +157,9 @@ function _autocomplete_widgets_get_options_flddata($field, $string = '', $match 
   if (!empty($limit)) {
     $select->range(0, $limit);
   }
+  if (!empty($order)) {
+    $select->orderBy($column, $order);
+  }
   $select->distinct();
   $rows = $select->execute()->fetchAll(PDO::FETCH_ASSOC);
 
@@ -168,10 +175,10 @@ function _autocomplete_widgets_get_options_flddata($field, $string = '', $match 
  *
  * Options are retrieved from the suggested values defined for the field.
  */
-function _autocomplete_widgets_get_options_suggested($field, $string = '', $match = 'contains', $keys = NULL, $limit = NULL) {
-  $case_sensitive = empty($field['widget']['autocomplete_case']);
+function _autocomplete_widgets_get_options_suggested($instance, $string = '', $match = 'contains', $keys = NULL, $limit = NULL) {
+  $case_sensitive = empty($instance['widget']['autocomplete_case']);
 
-  $options = explode("\n", $field['widget']['settings']['suggested_values']);
+  $options = explode("\n", $instance['widget']['settings']['suggested_values']);
   $options = array_map('trim', $options);
   $options = array_filter($options, 'strlen');
 
@@ -200,8 +207,9 @@ function _autocomplete_widgets_get_options_suggested($field, $string = '', $matc
         $options = array($string);
       }
       break;
-
   }
+
+  _autocomplete_widgets_sort_options($options, $instance);
 
   return $options;
 }
@@ -211,19 +219,25 @@ function _autocomplete_widgets_get_options_suggested($field, $string = '', $matc
  *
  * Options are retrieved from the titles of the allowed node types.
  */
-function _autocomplete_widgets_get_options_node_reference($field, $string = '', $match = 'contains', $keys = NULL, $limit = NULL) {
-  $field_name = $field['field_name'];
+function _autocomplete_widgets_get_options_node_reference($instance, $string = '', $match = 'contains', $keys = NULL, $limit = NULL) {
+  $field_name = $instance['field_name'];
   $table = 'field_data_' . $field_name;
   $column = $field_name . '_value';
   $options = array();
+  $order = isset($instance['widget']['settings']['order']) ? $instance['widget']['settings']['order'] : '';
 
   $field_query = db_select($table, 'fd')
     ->fields('fd', array($column));
 
   $node_title_query = db_select('node', 'n')
     ->fields('n', array('title'))
-    ->condition('n.type', $field['widget']['settings']['allowed_node_types'], 'IN')
+    ->condition('n.type', $instance['widget']['settings']['allowed_node_types'], 'IN')
     ->addTag('node_access');
+
+  if (!empty($order)) {
+    $field_query->orderBy($column, $order);
+    $node_title_query->orderBy('title', $order);
+  }
 
   if ($string !== '') {
     switch ($match) {
@@ -237,6 +251,7 @@ function _autocomplete_widgets_get_options_node_reference($field, $string = '', 
         $node_title_query->condition('n.title', '%' . $string . '%', 'LIKE');
         break;
     }
+    //@todo: can these fetch all's be replaced with fetchAssoc?
     $rows = $node_title_query->execute()->fetchAll(PDO::FETCH_ASSOC);
     foreach($rows as $row) {
       $options[$row['title']] = $row['title'];
@@ -246,7 +261,8 @@ function _autocomplete_widgets_get_options_node_reference($field, $string = '', 
       $options[$row[$column]] = $row[$column];
     }
   }
-  sort($options);
+
+  // @todo: limit should be accounted for here...
   return $options;
 }
 
@@ -266,3 +282,20 @@ function _autocomplete_widgets_validate_allowvals($element, &$form_state) {
     }
   }
 }
+
+/**
+ * Sort an array of options fo the given field instance.
+ */
+function _autocomplete_widgets_sort_options(&$options, $instance) {
+  if (isset($instance['widget']['settings']['order'])) {
+    switch ($instance['widget']['settings']['order']) {
+      case 'ASC':
+        sort($options);
+        break;
+      case 'DESC':
+        rsort($options);
+        break;
+    }
+  }
+}
+

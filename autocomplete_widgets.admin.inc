@@ -90,7 +90,7 @@ function _autocomplete_widgets_field_widget_settings_form($field, $instance) {
     $settings['suggested_values'] = !isset($settings['suggested_values']) ? '' : $settings['suggested_values'];
     $form['suggested_values'] = array(
       '#type' => 'textarea',
-      '#title' => t('Suggeset values list'),
+      '#title' => t('Suggested values list'),
       '#default_value' => $settings['suggested_values'],
       '#rows' => 10,
       '#description' => t('Autocomplete requests will only respond with suggestions from this list. If a user enters a value not on this list, it will <em>not</em> be added to the autocomplete options in the future. Enter one suggestion per line.'),
@@ -112,6 +112,19 @@ function _autocomplete_widgets_field_widget_settings_form($field, $instance) {
       '#description' => t('Autocomplete suggestions will be based on the titles of the selected nodes and existing field values.'),
     );
   }
+
+  $settings['order'] = !isset($settings['order']) ? 'ASC' : $settings['order'];
+  $form['order'] = array(
+    '#type' => 'select',
+    '#title' => t('Order'),
+    '#options' => array(
+      'ASC' => t('Ascending'),
+      'DESC' => t('Descending'),
+    ),
+    '#empty_option' => t('Don\'t Sort'),
+    '#default_value' => $settings['order'],
+    '#description' => t('Choose in which order should autocomplete suggestions be displayed.'),
+  );
 
   return $form;
 }
