@@ -249,3 +249,20 @@ function _autocomplete_widgets_get_options_node_reference($field, $string = '', 
   sort($options);
   return $options;
 }
+
+/**
+ * Validate a list autocomplete element.
+ */
+function _autocomplete_widgets_validate_allowvals($element, &$form_state) {
+  $instance = field_widget_instance($element, $form_state);
+  if ($instance['widget']['type'] == 'autocomplete_widgets_allowvals') {
+    $label = $element['#value'];
+    if ($label !== '') {
+      module_load_include('inc', 'autocomplete_widgets', 'autocomplete_widgets.common');
+      $options = _autocomplete_widgets_get_options($instance, $label, 'equals', NULL, 1);
+      if (empty($options)) {
+        form_error($element, t('%name: %label is not a valid option for this field.', array('%name' => $instance['label'], '%label' => $label)));
+      }
+    }
+  }
+}

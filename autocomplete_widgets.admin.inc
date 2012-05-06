@@ -114,5 +114,4 @@ function _autocomplete_widgets_field_widget_settings_form($field, $instance) {
   }
 
   return $form;
-
 }
