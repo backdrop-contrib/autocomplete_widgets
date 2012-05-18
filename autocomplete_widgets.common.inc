@@ -65,7 +65,6 @@ function _autocomplete_widgets_get_options($instance, $string = '', $match = 'co
  * Options are retrieved from the allowed values defined for the field.
  */
 function _autocomplete_widgets_get_options_allowvals($instance, $string = '', $match = 'contains', $keys = NULL, $limit = NULL) {
-
   $field_name = $instance['field_name'];
   $allowed_values = list_allowed_values(field_info_field($field_name));
   $limit = (!isset($limit) || !is_numeric($limit)) ? count($allowed_values) : $limit;
@@ -123,6 +122,7 @@ function _autocomplete_widgets_get_options_flddata($instance, $string = '', $mat
   $table = 'field_data_' . $instance['field_name'];
   $column = $instance['field_name'] . '_value';
   $order = isset($instance['widget']['settings']['order']) ? $instance['widget']['settings']['order'] : '';
+  $case_sensitive = !empty($instance['widget']['settings']['autocomplete_case']);
 
   $select = db_select($table, 'fd');
   $select->addField('fd', $column);
@@ -134,20 +134,16 @@ function _autocomplete_widgets_get_options_flddata($instance, $string = '', $mat
   }
 
   if ($string !== '') {
-    $case_sensitive = empty($instance['widget']['autocomplete_case']);
-    $col = $case_sensitive ? $column : strtolower($column);
-    $val = $case_sensitive ? $string : strtolower($string);
-
     switch ($match) {
       case 'equals':
-        $select->condition($col, $val);
+        $select->condition($column, $string);
         break;
       case 'starts_with':
-        $select->condition($col, $val . '%', 'LIKE');
+        $select->condition($column, $string . '%', 'LIKE');
         break;
       case 'contains':
       default:
-        $select->condition($col, '%' . $val . '%', 'LIKE');
+        $select->condition($column, '%' . $string . '%', 'LIKE');
         break;
     }
   }
@@ -160,13 +156,17 @@ function _autocomplete_widgets_get_options_flddata($instance, $string = '', $mat
   if (!empty($order)) {
     $select->orderBy($column, $order);
   }
-  $select->distinct();
-  $rows = $select->execute()->fetchAll(PDO::FETCH_ASSOC);
 
+  $rows = $select->execute()->fetchAll(PDO::FETCH_ASSOC);
   $options = array();
   foreach($rows as $row) {
-    $options[$row[$column]] = $row[$column];
+    // MySQL does not do case sensitive text comparisons with Drupal's default
+    // colation (utf8_general_ci) so we deal with it here after the fact.
+    if (!$case_sensitive || ($case_sensitive && strpos($row[$column], $string) !== FALSE)) {
+      $options[$row[$column]] = $row[$column];
+    }
   }
+
   return $options;
 }
 
@@ -176,8 +176,7 @@ function _autocomplete_widgets_get_options_flddata($instance, $string = '', $mat
  * Options are retrieved from the suggested values defined for the field.
  */
 function _autocomplete_widgets_get_options_suggested($instance, $string = '', $match = 'contains', $keys = NULL, $limit = NULL) {
-  $case_sensitive = empty($instance['widget']['autocomplete_case']);
-
+  $case_sensitive = !empty($instance['widget']['settings']['autocomplete_case']);
   $options = explode("\n", $instance['widget']['settings']['suggested_values']);
   $options = array_map('trim', $options);
   $options = array_filter($options, 'strlen');
@@ -186,20 +185,18 @@ function _autocomplete_widgets_get_options_suggested($instance, $string = '', $m
     case 'contains':
     case 'starts_with':
       $matched_options = array();
+      $string = !$case_sensitive ? strtolower($string) : $string;
 
-      if (!$case_sensitive) {
-        $options = array_map('strtolower', $options);
-        $string = strtolower($string);
-      }
-
-      foreach ($options as $option) {
+      foreach ($options as $key => $option) {
+        $option = !$case_sensitive ? strtolower($option) : $option;
         if ($match == 'contains' && strpos($option, $string) !== FALSE) {
-          $matched_options[] = $option;
+          $matched_options[] = $options[$key];
         }
         elseif ($match == 'starts_with' && strpos($option, $string) === 0) {
-          $matched_options[] = $option;
+          $matched_options[] = $options[$key];
         }
       }
+
       $options = $matched_options;
       break;
     case 'equals':
@@ -224,6 +221,7 @@ function _autocomplete_widgets_get_options_node_reference($instance, $string = '
   $table = 'field_data_' . $field_name;
   $column = $field_name . '_value';
   $options = array();
+  $case_sensitive = !empty($instance['widget']['settings']['autocomplete_case']);
   $order = isset($instance['widget']['settings']['order']) ? $instance['widget']['settings']['order'] : '';
 
   $field_query = db_select($table, 'fd')
@@ -251,14 +249,21 @@ function _autocomplete_widgets_get_options_node_reference($instance, $string = '
         $node_title_query->condition('n.title', '%' . $string . '%', 'LIKE');
         break;
     }
-    //@todo: can these fetch all's be replaced with fetchAssoc?
+
+    // @todo: can these fetch all's be replaced with fetchAssoc?
+    // MySQL does not do case sensitive text comparisons with Drupal's default
+    // colation (utf8_general_ci) so we deal with it here after the fact.
     $rows = $node_title_query->execute()->fetchAll(PDO::FETCH_ASSOC);
     foreach($rows as $row) {
-      $options[$row['title']] = $row['title'];
+      if (!$case_sensitive || ($case_sensitive && strpos($row['title'], $string) !== FALSE)) {
+        $options[$row['title']] = $row['title'];
+      }
     }
     $rows = $field_query->execute()->fetchAll(PDO::FETCH_ASSOC);
     foreach($rows as $row) {
-      $options[$row[$column]] = $row[$column];
+      if (!$case_sensitive || ($case_sensitive && strpos($row[$column], $string) !== FALSE)) {
+        $options[$row[$column]] = $row[$column];
+      }
     }
   }
 

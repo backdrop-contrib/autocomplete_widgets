@@ -1,8 +1,9 @@
 name = Autocomplete Widgets
-description = Provides autocomplete widgets for Text and List fields 
+description = Provides autocomplete widgets for Text and List fields
 core = 7.x
 
 files[] = autocomplete_widgets.admin.inc
 files[] = autocomplete_widgets.common.inc
 files[] = autocomplete_widgets.module
+files[] = tests/autocomplete_widgets.test
 dependencies[] = list

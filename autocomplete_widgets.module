@@ -249,9 +249,8 @@ function autocomplete_widgets_field_formatter_view($entity_type, $entity, $field
 function autocomplete_widgets_json($entity_type, $bundle_name, $field_name, $string = '') {
   module_load_include('inc', 'autocomplete_widgets', 'autocomplete_widgets.common');
   $instance = field_info_instance($entity_type, $field_name, $bundle_name);
-  $match = isset($field['widget']['settings']['autocomplete_match']) ? $field['widget']['settings']['autocomplete_match'] : 'contains';
+  $match = isset($instance['widget']['settings']['autocomplete_match']) ? $instance['widget']['settings']['autocomplete_match'] : 'contains';
   $matches = array();
-
   $options = _autocomplete_widgets_get_options($instance, $string, $match, NULL, 10);
   foreach ($options as $key => $label) {
     // Add a class wrapper for a few required CSS overrides.
