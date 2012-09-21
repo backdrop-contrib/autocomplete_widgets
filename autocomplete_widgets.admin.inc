@@ -66,7 +66,7 @@ function _autocomplete_widgets_field_widget_settings_form($field, $instance) {
   $form['autocomplete_xss'] = array(
     '#type' => 'radios',
     '#title' => t('Filter HTML'),
-    '#default_value' => (isset($widget['autocomplete_xss']) ? $widget['autocomplete_xss'] : 0),
+    '#default_value' => (isset($settings['autocomplete_xss']) ? $settings['autocomplete_xss'] : 0),
     '#options' => array(0 => t('Disabled'), 1 => t('Enabled')),
     '#description' => t('Enable this option to filter out HTML in display of values.'),
   );
