@@ -205,7 +205,7 @@ function autocomplete_widgets_field_formatter_view($entity_type, $entity, $field
     switch ($field['type']) {
       case 'text' :
 
-        if (isset($items[0]['value'])) {
+	if (isset($items[0]['value']) && isset($instance['widget']['settings']['allowed_node_types'])) {
           // If there exists a node with that title, display it as a link.
           $query = new EntityFieldQuery();
           $nodes = $query->entityCondition('entity_type', 'node')
