@@ -266,3 +266,27 @@ function theme_autocomplete_widgets($element) {
   return $element['#children'];
 }
 
+/**
+* Implements hook_content_migrate_field_alter().
+*/
+function autocomplete_widgets_content_migrate_field_alter(&$field_value, $instance_value) {
+  if (($field_value['type'] == 'text') && ($instance_value['widget']['type'] == 'autocomplete_widgets_flddata') && empty($field_value['settings']['max_length'])) {
+    $field_value['type'] = 'text';
+    $field_value['settings']['max_length'] = 255;
+    $field_value['messages'][] = t("Invalid field/widget combination: The field '@field' in the bundle '@bundle' is an unlimited length field using a '@widget' widget, not allowed in D7. The field length will be set to 255.", array('@field' => $field_value['field_name'], '@bundle' => $instance_value['bundle'], '@widget' => $instance_value['widget']['type']));
+  }
+  elseif (($field_value['type'] == 'text') && ($instance_value['widget']['type'] == 'autocomplete_widgets_allowvals') && empty($field_value['settings']['max_length'])) {
+    $field_value['messages'][] = t("Changed field type: The '@field' field uses a '@widget' widget. The field type will be changed from '@type' to 'list_text'.", array('@type' => $field_value['type'], '@field' => $field_value['field_name'], '@widget' => $instance_value['widget']['type']));
+    $field_value['type'] = 'list_text';
+    $field_value['module'] = 'list';
+    // Lists don't have a max_length setting.
+    if (isset($field_value['settings']['max_length'])) {
+      unset($field_value['settings']['max_length']);
+    }
+    $allowed_values = array();
+    if (!empty($field_value['settings']['allowed_values'])) {
+      $allowed_values = content_migrate_extract_allowed_values($field_value['settings']['allowed_values'], $field_value['type']);
+    }
+    $field_value['settings']['allowed_values'] = $allowed_values;
+  }
+}
