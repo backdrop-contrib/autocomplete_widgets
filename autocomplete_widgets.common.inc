@@ -295,10 +295,10 @@ function _autocomplete_widgets_sort_options(&$options, $instance) {
   if (isset($instance['widget']['settings']['order'])) {
     switch ($instance['widget']['settings']['order']) {
       case 'ASC':
-        sort($options);
+        asort($options);
         break;
       case 'DESC':
-        rsort($options);
+        arsort($options);
         break;
     }
   }
