@@ -124,14 +124,31 @@ function _autocomplete_widgets_get_options_flddata($instance, $string = '', $mat
   $order = isset($instance['widget']['settings']['order']) ? $instance['widget']['settings']['order'] : '';
   $case_sensitive = !empty($instance['widget']['settings']['autocomplete_case']);
 
-  $select = db_select($table, 'fd');
-  $select->addField('fd', $column);
+  $select = db_select('node', 'n');
 
-  if (!empty($instance['widget']['i18n_flddata'])) {
-    // Adding a join with the node table allows the i18n rewrite the query
-    // to filter values from node for the proper language.
-    $select->join('node', 'n', 'vid = n.vid');
+  if (!empty($instance['widget']['settings']['obey_access_controls'])) {
+    // Add entity_field_access so that node permission are respected.
+    $select->addTag('node_access');
+
+    if (!user_access('bypass node access')) {
+      // If the user is able to view their own unpublished nodes, allow them
+      // to see these in addition to published nodes. Check that they actually
+      // have some unpublished nodes to view before adding the condition.
+      if (user_access('view own unpublished content') && $own_unpublished = db_query('SELECT nid FROM {node} WHERE uid = :uid AND status = :status', array(':uid' => $GLOBALS['user']->uid, ':status' => NODE_NOT_PUBLISHED))->fetchCol()) {
+        $select->condition(db_or()
+          ->condition('n.status', NODE_PUBLISHED)
+          ->condition('n.nid', $own_unpublished, 'IN')
+        );
+      }
+      else {
+        // If not, restrict the query to published nodes.
+        $select->condition('n.status', NODE_PUBLISHED);
+      }
+    }
   }
+
+  $select->join($table, 'fd', 'revision_id = n.vid');
+  $select->addField('fd', $column);
 
   if ($string !== '') {
     switch ($match) {
@@ -231,6 +248,37 @@ function _autocomplete_widgets_get_options_node_reference($instance, $string = '
     ->fields('n', array('title'))
     ->condition('n.type', $instance['widget']['settings']['allowed_node_types'], 'IN')
     ->addTag('node_access');
+
+  $field_query = db_select('node', 'n');
+
+  if (!empty($instance['widget']['settings']['obey_access_controls'])) {
+    // Add entity_field_access so that node permission are respected.
+    $field_query->addTag('node_access');
+
+    if (!user_access('bypass node access')) {
+      // If the user is able to view their own unpublished nodes, allow them
+      // to see these in addition to published nodes. Check that they actually
+      // have some unpublished nodes to view before adding the condition.
+      if (user_access('view own unpublished content') && $own_unpublished = db_query('SELECT nid FROM {node} WHERE uid = :uid AND status = :status', array(':uid' => $GLOBALS['user']->uid, ':status' => NODE_NOT_PUBLISHED))->fetchCol()) {
+        $field_query->condition(db_or()
+          ->condition('n.status', NODE_PUBLISHED)
+          ->condition('n.nid', $own_unpublished, 'IN')
+        );
+        $node_title_query->condition(db_or()
+          ->condition('n.status', NODE_PUBLISHED)
+          ->condition('n.nid', $own_unpublished, 'IN')
+        );
+      }
+      else {
+        // If not, restrict the query to published nodes.
+        $field_query->condition('n.status', NODE_PUBLISHED);
+        $node_title_query->condition('n.status', NODE_PUBLISHED);
+      }
+    }
+  }
+
+  $field_query->join($table, 'fd', 'revision_id = n.vid');
+  $field_query->addField('fd', $column);
 
   if (!empty($order)) {
     $field_query->orderBy($column, $order);

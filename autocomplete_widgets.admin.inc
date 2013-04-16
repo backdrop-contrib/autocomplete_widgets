@@ -113,6 +113,15 @@ function _autocomplete_widgets_field_widget_settings_form($field, $instance) {
     );
   }
 
+  if ($widget['type'] == 'autocomplete_widgets_node_reference' || $widget['type'] == 'autocomplete_widgets_flddata') {
+    $form['obey_access_controls'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Only suggest nodes that the current user has permission to access.'),
+      '#default_value' => isset($settings['obey_access_controls']) ? $settings['obey_access_controls'] : 1,
+      '#description' => t('Unchecking this means that users might have nodes suggested to them to which they do not have access. Proceed with caution.'),
+    );
+  }
+
   $settings['order'] = !isset($settings['order']) ? 'ASC' : $settings['order'];
   $form['order'] = array(
     '#type' => 'select',
