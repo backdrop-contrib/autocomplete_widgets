@@ -7,3 +7,4 @@ files[] = autocomplete_widgets.common.inc
 files[] = autocomplete_widgets.module
 files[] = tests/autocomplete_widgets.test
 dependencies[] = list
+dependencies[] = system (>=7.39)
