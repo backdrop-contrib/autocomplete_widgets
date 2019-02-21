@@ -119,14 +119,17 @@ function _autocomplete_widgets_get_options_allowvals($instance, $string = '', $m
  * Options are retrieved from existing values for the field.
  */
 function _autocomplete_widgets_get_options_flddata($instance, $string = '', $match = 'contains', $keys = NULL, $limit = NULL) {
+
+  $entity_info = entity_get_info($instance['entity_type']);
+
   $table = 'field_data_' . $instance['field_name'];
   $column = $instance['field_name'] . '_value';
   $order = isset($instance['widget']['settings']['order']) ? $instance['widget']['settings']['order'] : '';
   $case_sensitive = !empty($instance['widget']['settings']['autocomplete_case']);
 
-  $select = db_select('node', 'n');
+  $select = db_select($entity_info['base table'], 'b');
 
-  if (!empty($instance['widget']['settings']['obey_access_controls'])) {
+  if ($entity_info['base table'] == 'node' && !empty($instance['widget']['settings']['obey_access_controls'])) {
     // Add entity_field_access so that node permission are respected.
     $select->addTag('node_access');
 
@@ -147,7 +150,8 @@ function _autocomplete_widgets_get_options_flddata($instance, $string = '', $mat
     }
   }
 
-  $select->join($table, 'fd', 'revision_id = n.vid');
+  $id = 'b.' . $entity_info['entity keys']['id'];
+  $select->join($table, 'fd', 'revision_id = ' . $id);
   $select->addField('fd', $column);
 
   if ($string !== '') {
