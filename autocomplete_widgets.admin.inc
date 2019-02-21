@@ -58,8 +58,8 @@ function _autocomplete_widgets_field_widget_settings_form($field, $instance) {
       }
       break;
     case 'autocomplete_widgets_allowvals':
-      $form['autocomplete_case']['#description'] = t('Case-insensitive queries are implemented using the function <a href="!drupal-strtolower-url">drupal_strtolower()</a>.', array(
-        '!drupal-strtolower-url' => 'http://api.drupal.org/api/function/drupal_strtolower/6',
+      $form['autocomplete_case']['#description'] = t('Case-insensitive queries are implemented using the function <a href="!strtolower-url">backdrop_strtolower()</a>.', array(
+        '!strtolower-url' => 'http://api.backdropcms.org/api/function/backdrop_strtolower',
       ));
       break;
   }
@@ -77,7 +77,7 @@ function _autocomplete_widgets_field_widget_settings_form($field, $instance) {
       '#title' => t('Internationalization support'),
       '#default_value' => (isset($widget['i18n_flddata']) ? $widget['i18n_flddata'] : 0),
       '#options' => array(0 => t('Disabled'), 1 => t('Enabled')),
-      '#description' => t('Enable this option to provide a different set of allowed values based on the language their nodes are assigned to. This option is only available when <a href="@i18n-project-page">Internationalization</a> module is enabled.', array('@i18n-project-page' => 'http://drupal.org/project/i18n')),
+      '#description' => t('Enable this option to provide a different set of allowed values based on the language their nodes are assigned to. This option is only available when <a href="@i18n-project-page">Internationalization</a> module is enabled.', array('@i18n-project-page' => 'http://backdropcms.org/project/i18n')),
     );
   }
   else {

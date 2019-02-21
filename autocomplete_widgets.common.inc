@@ -98,7 +98,7 @@ function _autocomplete_widgets_get_options_allowvals($instance, $string = '', $m
       }
     }
     else {
-      $pos = $case_sensitive ? strpos($value, $string) : strpos(drupal_strtolower($value), drupal_strtolower($string));
+      $pos = $case_sensitive ? strpos($value, $string) : strpos(backdrop_strtolower($value), backdrop_strtolower($string));
       if (($match == 'starts_with' && $pos === 0) || ($match == 'contains' && $pos !== FALSE)) {
         $options[$key] = $value;
         $count++;
@@ -179,8 +179,8 @@ function _autocomplete_widgets_get_options_flddata($instance, $string = '', $mat
 
   $rows = $select->execute()->fetchAll(PDO::FETCH_ASSOC);
   $options = array();
-  foreach($rows as $row) {
-    // MySQL does not do case sensitive text comparisons with Drupal's default
+  foreach ($rows as $row) {
+    // MySQL does not do case sensitive text comparisons with Backdrop's default
     // colation (utf8_general_ci) so we deal with it here after the fact.
     if (!$case_sensitive || ($case_sensitive && strpos($row[$column], $string) !== FALSE)) {
       $options[$row[$column]] = $row[$column];
@@ -302,7 +302,7 @@ function _autocomplete_widgets_get_options_node_reference($instance, $string = '
     }
 
     // @todo: can these fetch all's be replaced with fetchAssoc?
-    // MySQL does not do case sensitive text comparisons with Drupal's default
+    // MySQL does not do case sensitive text comparisons with Backdrop's default
     // colation (utf8_general_ci) so we deal with it here after the fact.
     $rows = $node_title_query->execute()->fetchAll(PDO::FETCH_ASSOC);
     foreach($rows as $row) {

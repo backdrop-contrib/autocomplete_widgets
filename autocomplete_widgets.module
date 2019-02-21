@@ -51,10 +51,10 @@ function autocomplete_widgets_element_process($element, &$form_state, $form) {
   if ($instance['widget']['type'] == 'autocomplete_widgets_allowvals') {
     module_load_include('inc', 'autocomplete_widgets', 'autocomplete_widgets.common');
 
-    $label = drupal_array_get_nested_value($form_state['values'], $element['#parents'], $exists);
+    $label = backdrop_array_get_nested_value($form_state['values'], $element['#parents'], $exists);
     $options = _autocomplete_widgets_get_options($instance, $label, 'equals', NULL, 1);
     if ($options) {
-      drupal_array_set_nested_value($form_state['values'], $element['#parents'], key($options));
+      backdrop_array_set_nested_value($form_state['values'], $element['#parents'], key($options));
     }
   }
   return $element;
@@ -153,7 +153,7 @@ function autocomplete_widgets_field_widget_form(&$form, &$form_state, $field, $i
         '#required' => $element['#required'],
         '#weight' => isset($element['#weight']) ? $element['#weight'] : 0,
         '#delta' => $delta,
-        '#file' => drupal_get_path('module', 'autocomplete_widgets') . '/autocomplete_widgets.common.inc',
+        '#file' => backdrop_get_path('module', 'autocomplete_widgets') . '/autocomplete_widgets.common.inc',
         '#element_validate' => array('_autocomplete_widgets_validate_allowvals'),
       ));
       break;
@@ -244,7 +244,7 @@ function autocomplete_widgets_json($entity_type, $bundle_name, $field_name, $str
     // Add a class wrapper for a few required CSS overrides.
     $matches[$label] = '<div class="reference-autocomplete">'. check_plain($label) .'</div>';
   }
-  drupal_json_output($matches);
+  backdrop_json_output($matches);
 }
 
 /**
