@@ -1,12 +1,13 @@
 <?php
-
 /**
  * @file
  * Administration related code for Autocomplete Widgets module.
  */
 
 /**
- * Implementation of hook_field_widget_settings_form().
+ * Internal helper function.
+ *
+ * @see autocomplete_widgets_field_widget_settings_form().
  */
 function _autocomplete_widgets_field_widget_settings_form($field, $instance) {
   $widget = $instance['widget'];

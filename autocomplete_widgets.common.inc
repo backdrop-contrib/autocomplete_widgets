@@ -1,5 +1,4 @@
 <?php
-
 /**
  * @file
  * Common functions for Autocomplete Widgets module.
