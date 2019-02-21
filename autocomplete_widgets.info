@@ -1,10 +1,10 @@
+type = module
 name = Autocomplete Widgets
 description = Provides autocomplete widgets for Text and List fields
-core = 7.x
+backdrop = 1.x
 
-files[] = autocomplete_widgets.admin.inc
-files[] = autocomplete_widgets.common.inc
-files[] = autocomplete_widgets.module
-files[] = tests/autocomplete_widgets.test
 dependencies[] = list
-dependencies[] = system (>=7.39)
+dependencies[] = system
+
+; todo: move these to tests.info file.
+files[] = tests/autocomplete_widgets.test
