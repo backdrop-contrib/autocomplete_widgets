@@ -5,6 +5,3 @@ backdrop = 1.x
 
 dependencies[] = list
 dependencies[] = system
-
-; todo: move these to tests.info file.
-files[] = tests/autocomplete_widgets.test

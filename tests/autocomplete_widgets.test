@@ -1,6 +1,6 @@
 <?php
 
-class autocompleteWidgetsBaseTest extends DrupalWebTestCase {
+class autocompleteWidgetsBaseTest extends BackdropWebTestCase {
   /**
    * Implementation of setUp().
    */
@@ -20,8 +20,8 @@ class autocompleteWidgetsBaseTest extends DrupalWebTestCase {
     );
 
     // Create an admin user with all the permissions needed to run tests.
-    $this->admin_user = $this->drupalCreateUser(array('access administration pages', 'bypass node access', 'administer nodes'));
-    $this->drupalLogin($this->admin_user);
+    $this->admin_user = $this->backdropCreateUser(array('access administration pages', 'bypass node access', 'administer nodes'));
+    $this->backdropLogin($this->admin_user);
 
     // Set default instance settings for quick reference.
     $this->settings = array(
@@ -57,11 +57,11 @@ class autocompleteWidgetsBaseTest extends DrupalWebTestCase {
     $instance['widget']['settings'] = $this->settings;
     field_update_instance($instance);
 
-    $this->drupalGet($this->path . 'f');
+    $this->backdropGet($this->path . 'f');
     $this->assertRaw('"foobar"', 'A suggestion was returned containing the search string.');
     $this->assertRaw('"fooBar"', 'A suggestion was returned containing the search string.');
     $this->assertRaw('"FooBar"', 'A suggestion was returned containing the search string.');
-    $this->assertRaw(drupal_json_encode('foo<em>baz</em>'), 'A suggestion was returned containing the search string.');
+    $this->assertRaw(backdrop_json_encode('foo<em>baz</em>'), 'A suggestion was returned containing the search string.');
     $this->assertRaw('"bazfoo"', 'A suggestion was returned containing the search string.');
     $this->assertNoRaw('"baz"', 'Non-matching value was not returned.');
   }
@@ -75,7 +75,7 @@ class autocompleteWidgetsBaseTest extends DrupalWebTestCase {
     $instance['widget']['settings'] = $settings;
     field_update_instance($instance);
 
-    $this->drupalGet($this->path . 'foo');
+    $this->backdropGet($this->path . 'foo');
     $this->assertRaw('"foobar"', 'A suggestion was returned starting with the search string.');
     $this->assertNoRaw('"bazfoo"', 'A suggestion containing but not starting with the search string was not returned.');
   }
@@ -89,7 +89,7 @@ class autocompleteWidgetsBaseTest extends DrupalWebTestCase {
     $instance['widget']['settings'] = $settings;
     field_update_instance($instance);
 
-    $this->drupalGet($this->path . 'F');
+    $this->backdropGet($this->path . 'F');
     $this->assertRaw('"FooBar"', 'A case-sensitive suggestion was returned containing the search string.');
     $this->assertNoRaw('"fooBar"', 'Non-matching case-sensitve value was not returned.');
   }
@@ -103,23 +103,12 @@ class autocompleteWidgetsBaseTest extends DrupalWebTestCase {
     $instance['widget']['settings'] = $settings;
     field_update_instance($instance);
 
-    $this->drupalGet($this->path . 'foo');
+    $this->backdropGet($this->path . 'foo');
     $this->assertRaw('"bazfoo"', 'A suggestion was returned with HTML stripped out.');
   }
 }
 
 class autocompleteWidgetsAllowedValuesTest extends autocompleteWidgetsBaseTest {
-  /**
-   * Implements getInfo().
-   */
-  public static function getInfo() {
-    return array(
-      'name' => t('Allowed Values Widget'),
-      'description' => t('Tests for the allowed values autocomplete widget.'),
-      'group' => t('Autocomplete Widgets'),
-    );
-  }
-
   function setUp() {
     parent::setUp();
 
@@ -150,16 +139,6 @@ class autocompleteWidgetsAllowedValuesTest extends autocompleteWidgetsBaseTest {
 }
 
 class autocompleteWidgetsFieldDataTest extends autocompleteWidgetsBaseTest {
-  /**
-   * Implements getInfo().
-   */
-  public static function getInfo() {
-    return array(
-      'name' => t('Existing Field Data Widget'),
-      'description' => t('Tests for the existing field data autocomplete widget.'),
-      'group' => t('Autocomplete Widgets'),
-    );
-  }
 
   function setUp() {
     parent::setUp();
@@ -187,7 +166,7 @@ class autocompleteWidgetsFieldDataTest extends autocompleteWidgetsBaseTest {
         'type' => 'article',
         $this->field['field_name'] => array(LANGUAGE_NONE => array(array('value' => $value))),
       );
-      $node = $this->drupalCreateNode($settings);
+      $node = $this->backdropCreateNode($settings);
     }
 
     $this->basicTest($instance);
@@ -199,17 +178,6 @@ class autocompleteWidgetsFieldDataTest extends autocompleteWidgetsBaseTest {
 }
 
 class autocompleteWidgetsSuggestedValuesTest extends autocompleteWidgetsBaseTest {
-  /**
-   * Implements getInfo().
-   */
-  public static function getInfo() {
-    return array(
-      'name' => t('Suggested Values Widget'),
-      'description' => t('Tests for the suggested values autocomplete widget.'),
-      'group' => t('Autocomplete Widgets'),
-    );
-  }
-
   function setUp() {
     parent::setUp();
 
@@ -238,16 +206,6 @@ class autocompleteWidgetsSuggestedValuesTest extends autocompleteWidgetsBaseTest
 }
 
 class autocompleteWidgetsNodeReferenceTest extends autocompleteWidgetsBaseTest {
-  /**
-   * Implements getInfo().
-   */
-  public static function getInfo() {
-    return array(
-      'name' => t('Node Reference Values Widget'),
-      'description' => t('Tests for the node reference values autocomplete widget.'),
-      'group' => t('Autocomplete Widgets'),
-    );
-  }
 
   function setUp() {
     parent::setUp();
@@ -276,7 +234,7 @@ class autocompleteWidgetsNodeReferenceTest extends autocompleteWidgetsBaseTest {
         'title' => $value,
         // $this->field['field_name'] => array(LANGUAGE_NONE => array(array('value' => $value))),
       );
-      $node = $this->drupalCreateNode($settings);
+      $node = $this->backdropCreateNode($settings);
     }
 
     $this->basicTest($instance);

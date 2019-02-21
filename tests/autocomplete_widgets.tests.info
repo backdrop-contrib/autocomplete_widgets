@@ -1,0 +1,23 @@
+[autocompleteWidgetsAllowedValuesTest]
+name = Allowed Values Widget
+description = Tests for the allowed values autocomplete widget.
+group = Autocomplete Widgets
+file = autocomplete_widgets.test
+
+[autocompleteWidgetsFieldDataTest]
+name = Existing Field Data Widget
+description = Tests for the existing field data autocomplete widget.
+group = Autocomplete Widgets
+file = autocomplete_widgets.test
+
+[autocompleteWidgetsSuggestedValuesTest]
+name = Suggested Values Widget
+description = Tests for the suggested values autocomplete widget.
+group = Autocomplete Widgets
+file = autocomplete_widgets.test
+
+[autocompleteWidgetsNodeReferenceTest]
+name = Node Reference Values Widget
+description = Tests for the node reference values autocomplete widget.
+group = Autocomplete Widgets
+file = autocomplete_widgets.test
