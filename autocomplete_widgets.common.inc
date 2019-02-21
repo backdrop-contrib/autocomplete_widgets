@@ -73,6 +73,8 @@ function _autocomplete_widgets_get_options_allowvals($instance, $string = '', $m
   $options = array();
   $count = 0; //@todo: cant the count var be replaced with a call to count()?
 
+  _autocomplete_widgets_sort_options($allowed_values, $instance);
+
   foreach ($allowed_values as $key => $value) {
     if ($filter_xss) {
       // Filter all HTML in $value, then trim white spaces.
@@ -107,8 +109,6 @@ function _autocomplete_widgets_get_options_allowvals($instance, $string = '', $m
       break;
     }
   }
-
-  _autocomplete_widgets_sort_options($options, $instance);
 
   return $options;
 }
@@ -202,6 +202,8 @@ function _autocomplete_widgets_get_options_suggested($instance, $string = '', $m
   $options = array_map('trim', $options);
   $options = array_filter($options, 'strlen');
 
+  _autocomplete_widgets_sort_options($options, $instance);
+
   switch ($match) {
     case 'contains':
     case 'starts_with':
@@ -226,8 +228,6 @@ function _autocomplete_widgets_get_options_suggested($instance, $string = '', $m
       }
       break;
   }
-
-  _autocomplete_widgets_sort_options($options, $instance);
 
   return $options;
 }
