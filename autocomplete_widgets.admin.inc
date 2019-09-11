@@ -15,10 +15,10 @@ function _autocomplete_widgets_field_widget_settings_form($field, $instance) {
 
   $form = array();
   $form['size'] = array(
-    '#type' => 'textfield',
+    '#type' => 'number',
     '#title' => t('Size of textfield'),
     '#default_value' => $settings['size'],
-    '#element_validate' => array('_element_validate_integer_positive'),
+    '#min' => 1,
     '#required' => TRUE,
   );
 
