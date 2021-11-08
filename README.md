@@ -18,6 +18,9 @@ This module adds 4 autocomplete widgets.
   just like the "existing field data" widget above except it will also suggest
   node titles for nodes of a specific content type(s).
 
+- Autocomplete for some node titles: This widget can be used to suggest
+  node titles for nodes of a specific content type(s).
+
 All these widgets allow you to choose the method used to match values: either
  'Starts with' or 'Contains'.
 
