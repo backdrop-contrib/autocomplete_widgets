@@ -101,6 +101,15 @@ function autocomplete_widgets_field_widget_info() {
         'autocomplete_case' => 1,
       ),
     ),
+    'autocomplete_widgets_node_title' => array(
+      'label' => t('Autocomplete for some node titles'),
+      'field types' => array('text'),
+      'settings' => array(
+        'size' => 60,
+        'autocomplete_match' => 'contains',
+        'autocomplete_case' => 1,
+      ),
+    ),
   );
 }
 
@@ -129,6 +138,7 @@ function autocomplete_widgets_field_widget_form(&$form, &$form_state, $field, $i
     case 'autocomplete_widgets_flddata':
     case 'autocomplete_widgets_suggested':
     case 'autocomplete_widgets_node_reference':
+    case 'autocomplete_widgets_node_title':
       $element['value'] = array_merge($element['value'], array(
         '#type' => 'textfield',
         '#autocomplete_path' => 'autocomplete_widgets/' . $instance['entity_type'] . '/' . $instance['bundle'] . '/' . $element['#field_name'],

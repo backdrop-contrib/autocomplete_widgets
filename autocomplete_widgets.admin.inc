@@ -29,7 +29,7 @@ function _autocomplete_widgets_field_widget_settings_form($field, $instance) {
     '#options' => array('starts_with' => t('Starts with'), 'contains' => t('Contains')),
     '#description' => t('Select the method used to collect autocomplete suggestions. Note that <em>Contains</em> can cause performance issues on sites with thousands of records.'),
   );
-  if ($widget['type'] != 'autocomplete_widgets_node_reference') {
+  if (!in_array($widget['type'], ['autocomplete_widgets_node_reference', 'autocomplete_widgets_node_title'])) {
     $form['autocomplete_case'] = array(
       '#type' => 'radios',
       '#title' => t('Case sensitive'),
@@ -98,7 +98,7 @@ function _autocomplete_widgets_field_widget_settings_form($field, $instance) {
     );
   }
 
-  if ($widget['type'] == 'autocomplete_widgets_node_reference') {
+  if ($widget['type'] == 'autocomplete_widgets_node_reference' || $widget['type'] == 'autocomplete_widgets_node_title') {
     $settings['allowed_node_types'] = !isset($settings['allowed_node_types']) ? array() : $settings['allowed_node_types'];
     $types = _node_types_build()->types;
     $options= array();
@@ -110,11 +110,11 @@ function _autocomplete_widgets_field_widget_settings_form($field, $instance) {
       '#title' => t('Allowed node types'),
       '#options' => $options,
       '#default_value' => $settings['allowed_node_types'],
-      '#description' => t('Autocomplete suggestions will be based on the titles of the selected nodes and existing field values.'),
+      '#description' => t('Autocomplete suggestions will be based on the titles of the selected nodes.'),
     );
   }
 
-  if ($widget['type'] == 'autocomplete_widgets_node_reference' || $widget['type'] == 'autocomplete_widgets_flddata') {
+  if ($widget['type'] == 'autocomplete_widgets_node_reference' || $widget['type'] == 'autocomplete_widgets_flddata' || $widget['type'] == 'autocomplete_widgets_node_title') {
     $form['obey_access_controls'] = array(
       '#type' => 'checkbox',
       '#title' => t('Only suggest nodes that the current user has permission to access.'),

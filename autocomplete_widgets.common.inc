@@ -50,6 +50,9 @@ function _autocomplete_widgets_get_options($instance, $string = '', $match = 'co
       case 'autocomplete_widgets_node_reference':
         $results[$cid] = _autocomplete_widgets_get_options_node_reference($instance, $string, $match, $keys, $limit);
         break;
+      case 'autocomplete_widgets_node_title':
+        $results[$cid] = _autocomplete_widgets_get_options_node_title($instance, $string, $match, $keys, $limit);
+        break;
       default:
         $results[$cid] = array();
     }
@@ -314,6 +317,70 @@ function _autocomplete_widgets_get_options_node_reference($instance, $string = '
     foreach($rows as $row) {
       if (!$case_sensitive || ($case_sensitive && strpos($row[$column], $string) !== FALSE)) {
         $options[$row[$column]] = $row[$column];
+      }
+    }
+  }
+
+  // @todo: limit should be accounted for here...
+  return $options;
+}
+
+/**
+ * Fetch an array of options for the given widget (node_title).
+ *
+ * Options are retrieved from the titles of the allowed node types.
+ */
+function _autocomplete_widgets_get_options_node_title($instance, $string = '', $match = 'contains', $keys = NULL, $limit = NULL) {
+  $options = array();
+  $case_sensitive = !empty($instance['widget']['settings']['autocomplete_case']);
+  $order = isset($instance['widget']['settings']['order']) ? $instance['widget']['settings']['order'] : '';
+
+  $node_title_query = db_select('node', 'n')
+    ->fields('n', array('title'))
+    ->condition('n.type', $instance['widget']['settings']['allowed_node_types'], 'IN')
+    ->addTag('node_access');
+
+  if (!empty($instance['widget']['settings']['obey_access_controls'])) {
+
+    if (!user_access('bypass node access')) {
+      // If the user is able to view their own unpublished nodes, allow them
+      // to see these in addition to published nodes. Check that they actually
+      // have some unpublished nodes to view before adding the condition.
+      if (user_access('view own unpublished content') && $own_unpublished = db_query('SELECT nid FROM {node} WHERE uid = :uid AND status = :status', array(':uid' => $GLOBALS['user']->uid, ':status' => NODE_NOT_PUBLISHED))->fetchCol()) {
+        $node_title_query->condition(db_or()
+          ->condition('n.status', NODE_PUBLISHED)
+          ->condition('n.nid', $own_unpublished, 'IN')
+        );
+      }
+      else {
+        // If not, restrict the query to published nodes.
+        $node_title_query->condition('n.status', NODE_PUBLISHED);
+      }
+    }
+  }
+
+  if (!empty($order)) {
+    $node_title_query->orderBy('title', $order);
+  }
+
+  if ($string !== '') {
+    switch ($match) {
+      case 'starts_with':
+        $node_title_query->condition('n.title', $string . '%', 'LIKE');
+        break;
+      case 'contains':
+      default:
+        $node_title_query->condition('n.title', '%' . $string . '%', 'LIKE');
+        break;
+    }
+
+    // @todo: can these fetch all's be replaced with fetchAssoc?
+    // MySQL does not do case sensitive text comparisons with Backdrop's default
+    // colation (utf8_general_ci) so we deal with it here after the fact.
+    $rows = $node_title_query->execute()->fetchAll(PDO::FETCH_ASSOC);
+    foreach($rows as $row) {
+      if (!$case_sensitive || ($case_sensitive && strpos($row['title'], $string) !== FALSE)) {
+        $options[$row['title']] = $row['title'];
       }
     }
   }
